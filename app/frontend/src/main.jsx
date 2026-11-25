@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react'; import {createRoot} from 'react-dom/client'; import './style.css';
-const api=(p,o={})=>fetch('/api'+p,{headers:{'Content-Type':'application/json',...(o.token?{Authorization:`Bearer ${o.token}`}:{})},...o});
+const api=(p,o={})=>fetch('/api'+p,{...o,headers:{'Content-Type':'application/json',...(o.token?{Authorization:`Bearer ${o.token}`}:{}),...o.headers}});
 function App(){const [token,setToken]=useState(localStorage.token||'');const [tab,setTab]=useState('restaurants');const [restaurants,setRestaurants]=useState([]);const [orders,setOrders]=useState([]);const [email,setEmail]=useState('demo@example.com');const [password,setPassword]=useState('ChangeMe123!');const [msg,setMsg]=useState('');
 async function login(){let r=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});let d=await r.json(); if(!r.ok)return setMsg(d.detail||'Login failed'); localStorage.token=d.access_token;setToken(d.access_token);setMsg('Logged in');}
 async function load(){let r=await api('/restaurants');setRestaurants(await r.json());if(token){let o=await api('/orders',{token});if(o.ok)setOrders(await o.json())}} useEffect(()=>{load()},[token]);

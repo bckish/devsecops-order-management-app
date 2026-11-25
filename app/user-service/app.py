@@ -2,9 +2,9 @@ import logging, json
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
-from .config import settings
-from .services.db import fetch_one, execute
-from .services.security import hash_password, verify_password, create_token, decode_token
+from config import settings
+from services.db import fetch_one, execute
+from services.security import hash_password, verify_password, create_token, decode_token
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 log=logging.getLogger('user-service')
@@ -23,7 +23,7 @@ def ready():
     fetch_one('SELECT 1 AS ok'); return {'status':'ready'}
 @app.post('/register', status_code=201)
 def register(body:Register):
-    if body.role not in {'USER','ADMIN','RESTAURANT'}: raise HTTPException(400,'Invalid role')
+    if body.role != 'USER': raise HTTPException(400,'Public registration is limited to USER')
     if fetch_one('SELECT id FROM users WHERE email=%s',(body.email,)): raise HTTPException(409,'Email already registered')
     row=execute('INSERT INTO users(email,password_hash,role) VALUES(%s,%s,%s) RETURNING id,email,role,created_at',(body.email,hash_password(body.password),body.role))
     return row

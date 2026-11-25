@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel, Field
-from .config import settings
-from .services.db import fetch_one, execute
-from .services.security import decode_token
+from config import settings
+from services.db import fetch_one, execute
+from services.security import decode_token
 app=FastAPI(title='Payment Service',version='1.0.0')
 class PaymentIn(BaseModel): order_id:int; amount:float=Field(gt=0); method:str='CARD'
 def uid(auth):

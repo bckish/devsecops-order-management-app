@@ -1,8 +1,8 @@
-# REAL-TIME DEVSECOPS KUBERNETES — ORDER MANAGEMENT PRODUCTION PROJECT
+# DevSecOps order management — Kubernetes learning lab
 
-A complete learning and portfolio project that extends the previous Kubernetes microservices + Docker/registry + GitOps/Argo CD work into an end-to-end DevSecOps implementation.
+A learning and portfolio project that extends the previous Kubernetes microservices + Docker/registry + GitOps/Argo CD work into an end-to-end DevSecOps implementation.
 
-## What you build
+## Intended architecture
 Developer → GitHub PR → tests → SAST → dependency scan → Gitleaks → Docker → Trivy → SBOM → Cosign → Azure Container Registry → GitOps repo → Argo CD → Azure AKS → Kyverno policies → monitoring/logging.
 
 ## Two repositories
@@ -35,6 +35,16 @@ docker compose up -d
 ```
 
 ## 2. Test APIs
+
+To run a native integration smoke test without Docker, install PostgreSQL locally and create a fresh disposable database. Then:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r app/user-service/requirements.txt pytest
+DATABASE_URL='postgresql://localhost:5432/disposable_test_database' .venv/bin/python scripts/local_smoke.py
+```
+
+This initializes the fresh database and starts six temporary loopback services. No cloud services or real payment processing are involved.
 ```bash
 curl http://localhost:3000/api/health
 curl http://localhost:3000/api/restaurants
@@ -54,7 +64,9 @@ pip install semgrep pip-audit pytest
 semgrep scan --config security/sast/.semgrep.yml app/
 for f in app/*/requirements.txt; do pip-audit -r "$f" --strict; done
 gitleaks detect --source . --config security/secrets/gitleaks.toml --redact
-pytest app/*/tests -q
+for s in api-gateway user-service restaurant-service order-service payment-service notification-service; do
+  (cd "app/$s" && python -m pytest tests -q) || exit 1
+done
 trivy config k8s/ --severity HIGH,CRITICAL
 ```
 For Node dependency checks:
@@ -100,6 +112,8 @@ az acr repository show-tags --name <acr-name> --repository order-management/user
 Production should reference an immutable release tag/Git SHA and preferably the image digest, not `latest`.
 
 ## 8. Terraform Azure infrastructure
+
+Validate with `terraform init -backend=false` and `terraform validate` from the terraform directory. Neither command creates cloud resources.
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
@@ -173,7 +187,7 @@ kubectl -n order-management get hpa
 ```
 
 ## 15. CI/CD
-Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions: `pipelines/github-actions.yml`. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
+Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions sample: `pipelines/github-actions.yml` (not active from that directory). The pull-request validation workflow compiles Python, runs six isolated service test suites, checks Compose and renders Helm. It does not publish images or deploy. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
 
 ## 16. Failure gates
 The sample pipeline demonstrates failing on SAST/dependency/secret/image findings. Tune severity thresholds to your organization's risk policy and document approved exceptions with an expiry date.

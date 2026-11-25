@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import bcrypt, jwt
 from fastapi import HTTPException, status
-from ..config import settings
+from config import settings
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
