@@ -1,6 +1,6 @@
 import psycopg
 from psycopg.rows import dict_row
-from ..config import settings
+from config import settings
 
 def conn():
     return psycopg.connect(settings.database_url, row_factory=dict_row)
@@ -16,4 +16,4 @@ def fetch_all(sql, params=()):
 def execute(sql, params=()):
     with conn() as c, c.cursor() as cur:
         cur.execute(sql, params)
-        return cur.fetchone()
+        return cur.fetchone() if cur.description else None

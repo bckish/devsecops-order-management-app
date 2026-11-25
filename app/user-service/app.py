@@ -2,9 +2,9 @@ import logging, json
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
-from .config import settings
-from .services.db import fetch_one, execute
-from .services.security import hash_password, verify_password, create_token, decode_token
+from config import settings
+from services.db import fetch_one, execute
+from services.security import hash_password, verify_password, create_token, decode_token
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 log=logging.getLogger('user-service')

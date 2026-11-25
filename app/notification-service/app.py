@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
-from .config import settings
-from .services.db import fetch_one, fetch_all, execute
-from .services.security import decode_token
+from config import settings
+from services.db import fetch_one, fetch_all, execute
+from services.security import decode_token
 app=FastAPI(title='Notification Service',version='1.0.0')
 class NotificationIn(BaseModel): order_id:int; channel:str='EMAIL'; message:str=Field(min_length=1,max_length=500)
 def uid(auth):

@@ -1,9 +1,9 @@
 import logging
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel, Field
-from .config import settings
-from .services.db import fetch_all, fetch_one, execute
-from .services.security import decode_token
+from config import settings
+from services.db import fetch_all, fetch_one, execute
+from services.security import decode_token
 app=FastAPI(title='Order Service',version='1.0.0'); logging.basicConfig(level=logging.INFO,format='%(message)s')
 class Item(BaseModel): menu_item_id:int; quantity:int=Field(gt=0,le=50)
 class OrderIn(BaseModel): restaurant_id:int; items:list[Item]
@@ -40,4 +40,5 @@ def status(order_id:int,status_value:str,authorization:str|None=Header(default=N
     uid=user_id(authorization); allowed={'CREATED','PAID','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'}
     if status_value not in allowed: raise HTTPException(400,'Invalid status')
     r=execute('UPDATE orders SET status=%s WHERE id=%s AND user_id=%s RETURNING *',(status_value,order_id,uid))
-    if not r: raise HTTPException(404,'Order not found'); return r
+    if not r: raise HTTPException(404,'Order not found')
+    return r

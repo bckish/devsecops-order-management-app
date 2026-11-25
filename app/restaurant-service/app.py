@@ -1,8 +1,8 @@
 import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from .config import settings
-from .services.db import fetch_all, fetch_one, execute
+from config import settings
+from services.db import fetch_all, fetch_one, execute
 app=FastAPI(title='Restaurant Service',version='1.0.0'); logging.basicConfig(level=logging.INFO,format='%(message)s')
 class RestaurantIn(BaseModel): name:str=Field(min_length=2,max_length=120); address:str; cuisine:str
 class MenuIn(BaseModel): restaurant_id:int; name:str; price:float=Field(gt=0); available:bool=True

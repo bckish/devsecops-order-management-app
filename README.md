@@ -35,6 +35,16 @@ docker compose up -d
 ```
 
 ## 2. Test APIs
+
+To run a native integration smoke test without Docker, install PostgreSQL locally and create a fresh disposable database. Then:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r app/user-service/requirements.txt pytest
+DATABASE_URL='postgresql://localhost:5432/disposable_test_database' .venv/bin/python scripts/local_smoke.py
+```
+
+This initializes the fresh database and starts six temporary loopback services. No cloud services or real payment processing are involved.
 ```bash
 curl http://localhost:3000/api/health
 curl http://localhost:3000/api/restaurants
@@ -103,7 +113,7 @@ Production should reference an immutable release tag/Git SHA and preferably the 
 
 ## 8. Terraform Azure infrastructure
 
-**Known blocker:** the inherited Terraform source does not currently parse; fix and validate all roots before planning or applying. The sample application test/import layout also needs runtime repair.
+Validate with `terraform init -backend=false` and `terraform validate` from the terraform directory. Neither command creates cloud resources.
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
@@ -177,7 +187,7 @@ kubectl -n order-management get hpa
 ```
 
 ## 15. CI/CD
-Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions sample: `pipelines/github-actions.yml` (not active from that directory). The pull-request validation workflow in `.github/workflows/ci.yml` compiles Python and checks Compose configuration only; it is local-only and does not publish images or deploy. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
+Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions sample: `pipelines/github-actions.yml` (not active from that directory). The pull-request validation workflow compiles Python, runs six isolated service test suites, checks Compose and renders Helm. It does not publish images or deploy. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
 
 ## 16. Failure gates
 The sample pipeline demonstrates failing on SAST/dependency/secret/image findings. Tune severity thresholds to your organization's risk policy and document approved exceptions with an expiry date.
