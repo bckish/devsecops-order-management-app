@@ -102,6 +102,8 @@ az acr repository show-tags --name <acr-name> --repository order-management/user
 Production should reference an immutable release tag/Git SHA and preferably the image digest, not `latest`.
 
 ## 8. Terraform Azure infrastructure
+
+**Known blocker:** the inherited Terraform source does not currently parse; fix and validate all roots before planning or applying. The sample application test/import layout also needs runtime repair.
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
@@ -175,7 +177,7 @@ kubectl -n order-management get hpa
 ```
 
 ## 15. CI/CD
-Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions sample: `pipelines/github-actions.yml` (not active from that directory). The pull-request validation workflow in `.github/workflows/ci.yml`, if present, is local-only and does not publish images or deploy. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
+Azure DevOps: `pipelines/devsecops-ci.yml`. GitHub Actions sample: `pipelines/github-actions.yml` (not active from that directory). The pull-request validation workflow in `.github/workflows/ci.yml` compiles Python and checks Compose configuration only; it is local-only and does not publish images or deploy. Before production, add your organization-specific ACR login, federated identity/OIDC, SonarQube quality gate, Cosign identity/issuer, GitOps write credentials, approval gates and artifact retention rules.
 
 ## 16. Failure gates
 The sample pipeline demonstrates failing on SAST/dependency/secret/image findings. Tune severity thresholds to your organization's risk policy and document approved exceptions with an expiry date.
