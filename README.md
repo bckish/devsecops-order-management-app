@@ -237,3 +237,22 @@ This repository contains local practice values and examples. Never reuse them in
 
 ## Interview
 See `docs/INTERVIEW-QUESTIONS.md` for 40 project-specific questions and answers.
+
+## Verified local Kubernetes and Helm results
+
+Test date: 25 November 2026. Environment: Docker Desktop on Apple Silicon, Kind v0.30.0, Kubernetes v1.34.3. Local images were imported into the isolated cluster; no images were pushed to a registry and no paid cloud resources were created.
+
+Tested code: `8690d35` (merged main) plus the Helm non-root UID/GID correction in this review. The actual seven locally built images (six Python APIs plus the Nginx frontend) were loaded into Kind, and Helm chart `order-management-0.1.0` deployed successfully (release revision 2). A real PostgreSQL 16 instance used a bound 1 GiB local PVC; Redis 7 returned PONG.
+
+Through the deployed frontend gateway, the end-to-end integration completed registration, login, restaurant/menu lookup, order creation and retrieval, mock payment, notification, and paid-order history. All seven application pods were Ready. Kubernetes initially rejected the named non-root image user; declaring UID/GID 10001 in the six Python chart templates resolved that issue while preserving `runAsNonRoot` and dropping capabilities.
+
+Use a disposable local Kind cluster and load the seven app images tagged `bckish-local/order-management/<service>:runtime`, plus `postgres:16-alpine` and `redis:7-alpine`. Then:
+
+```bash
+kubectl --kubeconfig /path/to/local-kind.kubeconfig create namespace order-local
+kubectl --kubeconfig /path/to/local-kind.kubeconfig apply -f local-k8s/data.yaml
+helm --kubeconfig /path/to/local-kind.kubeconfig upgrade --install orders helm/order-management --namespace order-local -f helm/order-management/values-dev.yaml --set registry=bckish-local/order-management --set imageTag=runtime --set ingressHost=order-local.invalid --wait
+kubectl --kubeconfig /path/to/local-kind.kubeconfig -n order-local port-forward --address 127.0.0.1 service/frontend 23000:8080
+```
+
+The [local data fixture](local-k8s/data.yaml) uses test-only credentials and a local dynamic PVC. The successful test does not establish live AKS/ACR, workload identity, Key Vault, cloud ingress or production payment processing.

@@ -16,7 +16,7 @@ spec:
         - secretRef:
             name: {{ .Values.existingSecret | quote }}
         resources: {{ toYaml .Values.resources | nindent 10 }}
-        securityContext: {runAsNonRoot: true,allowPrivilegeEscalation: false,capabilities: {drop: [ALL]}}
+        securityContext: {runAsNonRoot: true,runAsUser: 10001,runAsGroup: 10001,allowPrivilegeEscalation: false,capabilities: {drop: [ALL]}}
         readinessProbe: {httpGet: {path: /ready,port: 8005},periodSeconds: 10}
         livenessProbe: {httpGet: {path: /health,port: 8005},periodSeconds: 20}
 ---
