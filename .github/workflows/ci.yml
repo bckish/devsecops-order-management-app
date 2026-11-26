@@ -46,7 +46,7 @@ jobs:
           node-version: '22'
       - name: Build frontend
         working-directory: app/frontend
-        run: npm ci && npm run build
+        run: npm ci && npm audit --audit-level=high && npm run build
       - name: Validate local Compose configuration
         run: docker compose config --quiet
       - name: Lint and render Helm chart without a cluster
