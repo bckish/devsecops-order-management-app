@@ -261,3 +261,7 @@ The [local data fixture](local-k8s/data.yaml) uses test-only credentials and a l
 ## Dependency maintenance (26 November 2026)
 
 Updated FastAPI to 0.165.0 and Uvicorn to 0.54.0, use Uvicorn's WebSocket Sans-I/O implementation, and separate the test-only `httpx2` dependency from the runtime HTTP client. The six service unit tests and native PostgreSQL integration passed with Python warnings treated as errors. All seven rebuilt Docker Compose application containers were healthy; end-to-end gateway authentication, restaurant lookup, orders, mock payment, notifications, and Redis PONG passed with strict Python warnings enabled. No cloud deployment was performed.
+
+### Frontend security follow-up (26 November 2026)
+
+Updated Vite from 6.3.2 to 6.4.6 and regenerated the lockfile. Clean installation, `npm audit --audit-level=high` (zero reported vulnerabilities), production build, six strict Python service tests, native PostgreSQL integration, and the full local Compose smoke test passed. CI now fails on high or critical npm advisories. This audit applies to the npm dependency set, not the entire production stack.
