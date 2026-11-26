@@ -40,7 +40,7 @@ To run a native integration smoke test without Docker, install PostgreSQL locall
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r app/user-service/requirements.txt pytest
+.venv/bin/pip install -r app/user-service/requirements.txt -r requirements-test.txt
 DATABASE_URL='postgresql://localhost:5432/disposable_test_database' .venv/bin/python scripts/local_smoke.py
 ```
 
@@ -60,12 +60,13 @@ curl -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/
 
 ## 3. Run unit/security checks
 ```bash
-pip install semgrep pip-audit pytest
+pip install semgrep pip-audit
+pip install -r app/user-service/requirements.txt -r requirements-test.txt
 semgrep scan --config security/sast/.semgrep.yml app/
 for f in app/*/requirements.txt; do pip-audit -r "$f" --strict; done
 gitleaks detect --source . --config security/secrets/gitleaks.toml --redact
 for s in api-gateway user-service restaurant-service order-service payment-service notification-service; do
-  (cd "app/$s" && python -m pytest tests -q) || exit 1
+  (cd "app/$s" && python -m pytest tests -q -W error) || exit 1
 done
 trivy config k8s/ --severity HIGH,CRITICAL
 ```
@@ -256,3 +257,7 @@ kubectl --kubeconfig /path/to/local-kind.kubeconfig -n order-local port-forward 
 ```
 
 The [local data fixture](local-k8s/data.yaml) uses test-only credentials and a local dynamic PVC. The successful test does not establish live AKS/ACR, workload identity, Key Vault, cloud ingress or production payment processing.
+
+## Dependency maintenance (26 November 2026)
+
+Updated FastAPI to 0.165.0 and Uvicorn to 0.54.0, use Uvicorn's WebSocket Sans-I/O implementation, and separate the test-only `httpx2` dependency from the runtime HTTP client. The six service unit tests and native PostgreSQL integration passed with Python warnings treated as errors. All seven rebuilt Docker Compose application containers were healthy; end-to-end gateway authentication, restaurant lookup, orders, mock payment, notifications, and Redis PONG passed with strict Python warnings enabled. No cloud deployment was performed.

@@ -24,8 +24,10 @@ stages:
         docker run --rm -v "$(Build.SourcesDirectory):/repo" zricethezav/gitleaks:latest detect --source=/repo --no-banner --redact
       displayName: Secret scan
     - script: |
-        pip install -r app/user-service/requirements.txt
-        python -m pytest app/*/tests -q
+        pip install -r app/user-service/requirements.txt -r requirements-test.txt
+        for service in api-gateway user-service restaurant-service order-service payment-service notification-service; do
+          (cd "app/$service" && python -m pytest tests -q -W error) || exit 1
+        done
       displayName: Unit tests
 - stage: BuildScan
   dependsOn: Validate
