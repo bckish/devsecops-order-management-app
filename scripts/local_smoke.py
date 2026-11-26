@@ -41,7 +41,7 @@ def main():
     try:
         for service in SERVICES:
             processes.append(subprocess.Popen(
-                [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(ports[service])],
+                [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(ports[service]), "--ws", "websockets-sansio"],
                 cwd=ROOT / "app" / service, env=env,
             ))
         for service in SERVICES:

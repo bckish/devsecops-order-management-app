@@ -9,4 +9,4 @@ RUN chown -R app:app /app
 USER app
 EXPOSE 8004
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/health')"
-CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8004"]
+CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8004","--ws","websockets-sansio"]
